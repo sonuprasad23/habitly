@@ -1,10 +1,10 @@
 workflows:
   android-debug:
-    name: Android Debug APK
+    name: Android Release APK
     max_build_duration: 90
     environment:
       java: 21
-      node: 22
+      node: 20
       npm: latest
     
     cache:
@@ -37,10 +37,10 @@ workflows:
           cd android
           chmod +x gradlew
           
-      - name: Build Android Debug APK
+      - name: Build Android Release APK
         script: |
           cd android
-          ./gradlew assembleDebug --no-daemon --warning-mode all
+          ./gradlew assembleRelease --no-daemon --warning-mode all --stacktrace
       
     artifacts:
       - android/app/build/outputs/apk/**/*.apk
