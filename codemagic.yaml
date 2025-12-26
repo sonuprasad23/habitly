@@ -1,37 +1,54 @@
 workflows:
   android-release:
     name: Android APK Build
-    max_build_duration: 60
+    max_build_duration: 90
     environment:
       java: 21
       node: 22
       npm: latest
+      android_signing:
+        - keystore_reference
+      groups:
+        - android_credentials
+    
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.npm
+        - node_modules
     
     scripts:
+      - name: Set up environment
+        script: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Java version: $(java --version)"
+          
       - name: Install dependencies
         script: |
           npm install --legacy-peer-deps
           
-      - name: Verify babel-preset-expo
+      - name: Verify critical packages
         script: |
-          npm list babel-preset-expo || npm install --legacy-peer-deps
-      
+          npm list react-native-reanimated react-native-worklets-core babel-preset-expo || true
+          
       - name: Run Expo prebuild
         script: |
           npx expo prebuild --platform android --clean
-      
-      - name: Set up Gradle wrapper permissions
+          
+      - name: Fix Android permissions
         script: |
           cd android
           chmod +x gradlew
-      
+          
       - name: Build Android APK
         script: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all
+          ./gradlew assembleDebug --no-daemon --warning-mode all
       
     artifacts:
       - android/app/build/outputs/apk/**/*.apk
+      - android/app/build/outputs/bundle/**/*.aab
     
     publishing:
       email:
