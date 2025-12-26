@@ -1,23 +1,39 @@
 workflows:
-  android-debug:
-    name: Android APK
+  android-release:
+    name: Android APK Build
     max_build_duration: 60
     environment:
-      java: 21
-      node: 22
-
+      java: 17
+      node: 18
+      npm: latest
+    
     scripts:
       - name: Install dependencies
-        script: npm install
-
-      - name: Expo prebuild (generate native Android project)
-        script: npx expo prebuild --platform android --clean
-
-      - name: Build Android APK (Release)
+        script: |
+          npm install --legacy-peer-deps
+          
+      - name: Verify babel-preset-expo
+        script: |
+          npm list babel-preset-expo || npm install --legacy-peer-deps
+      
+      - name: Run Expo prebuild
+        script: |
+          npx expo prebuild --platform android --clean
+      
+      - name: Set up Gradle wrapper permissions
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
-
+      
+      - name: Build Android APK
+        script: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace --warning-mode all
+      
     artifacts:
-      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/apk/**/*.apk
+    
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
